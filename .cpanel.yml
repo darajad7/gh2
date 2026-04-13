@@ -3,4 +3,4 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/fist9591/public_html/gh2/
     - mkdir -p $DEPLOYPATH
-    - /bin/cp -R /home/fist9591/repositories/gh2/* $DEPLOYPATH
+    - /bin/cp -R /home/fist9591/repositories/gh3/* $DEPLOYPATH
