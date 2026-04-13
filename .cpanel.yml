@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/fist9591/public_html/
+    - /bin/cp -R /home/fist9591/repositories/gh2/* $DEPLOYPATH
