@@ -10,7 +10,7 @@
 $secret = '6e8f7d012010b57b52fb2822f74c9c60f0a9a65b32dba7b22ec14a31797f7ef5';
 $repo_path = '/home/fist9591/repositories/gh2';
 $branch = 'main';
-$log_file = __DIR__ . '/deploy.log';
+$log_file = '/home/fist9591/public_html/gh2/deploy.log';
 
 // === VERIFY REQUEST ===
 $payload = file_get_contents('php://input');
