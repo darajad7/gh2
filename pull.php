@@ -16,14 +16,34 @@ if (($_GET['key'] ?? '') !== $secret_key) {
 
 $output = date('Y-m-d H:i:s') . " - Manual deploy\n";
 
-// Pull from remote
-$pull = shell_exec("cd $repo_path && git pull origin main 2>&1");
-$output .= "Pull: " . ($pull ?: "shell_exec blocked") . "\n";
+// Check which exec functions are available
+$disabled = array_map('trim', explode(',', ini_get('disable_functions')));
+$available = null;
+foreach (['shell_exec', 'exec', 'system', 'passthru', 'proc_open'] as $fn) {
+    if (function_exists($fn) && !in_array($fn, $disabled)) {
+        $available = $fn;
+        break;
+    }
+}
 
-// Trigger cPanel deploy
-$deploy = shell_exec("uapi VersionControl update repository_root=$repo_path 2>&1");
-$output .= "Deploy: " . ($deploy ?: "shell_exec blocked") . "\n";
+if ($available === 'shell_exec') {
+    $pull = shell_exec("cd $repo_path && git pull origin main 2>&1");
+    $output .= "Pull: $pull\n";
+    $deploy = shell_exec("uapi VersionControl update repository_root=$repo_path 2>&1");
+    $output .= "Deploy: $deploy\n";
+} elseif ($available === 'exec') {
+    exec("cd $repo_path && git pull origin main 2>&1", $pullOut, $pullCode);
+    $output .= "Pull ($pullCode): " . implode("\n", $pullOut) . "\n";
+    exec("uapi VersionControl update repository_root=$repo_path 2>&1", $deployOut, $deployCode);
+    $output .= "Deploy ($deployCode): " . implode("\n", $deployOut) . "\n";
+} else {
+    $output .= "ERROR: No exec functions available on this hosting.\n";
+    $output .= "Disabled functions: " . ini_get('disable_functions') . "\n";
+    $output .= "\nAuto-deploy is NOT possible on this shared hosting.\n";
+    $output .= "Please use cPanel > Git Version Control > Update from Remote > Deploy HEAD Commit.\n";
+}
 
 file_put_contents($log_file, $output, FILE_APPEND | LOCK_EX);
 
-echo "<pre>$output</pre>";
+header('Content-Type: text/plain');
+echo $output;
